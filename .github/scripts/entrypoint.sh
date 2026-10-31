@@ -13,7 +13,7 @@ python3 /app/.github/scripts/todo-test.py | tee /add/test_output.txt
 echo "===================" 
 echo "Executing update_index.sh" 
 echo "===================" 
-python3 /app/.github/scripts/update_index.sh /add/todo_output.txt /app/test_output.txt
+bash /app/.github/scripts/update_index.sh /add/todo_output.txt /app/test_output.txt
 
 echo "===================" 
 echo "Done!" 
