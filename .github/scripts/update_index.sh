@@ -15,8 +15,16 @@ update_pre "pending" "$TODO_TASKS" "$HTML_FILE"
 update_pre "completed" "$DONE_TASKS" "$HTML_FILE" 
 update_pre "unittest" "$UNIT_TEST_RESULTS" "$HTML_FILE"
 
-#git config --global user.email "github-actions@users.noreply.github.com" 
-#git add "$HTML_FILE"
-#git commit -m "Update $HTML_FILE with new task and test data" 
-#git push
+git config --global --add safe.directory /app
+git config --global user.name "github-actions[bot]"
+git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+git add "$HTML_FILE"
+
+if ! git diff --cached --quiet; then
+    git commit -m "Automatically update index.html"
+    git push origin main
+else
+    echo "No changes to commit."
+fi
 

@@ -1,13 +1,30 @@
+
 name: CI Workflow - Docker
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
       - name: Build Docker image
         run: docker build -t task-manager:latest .
-      - name: Run Docker image
-        run: docker run --rm -e GITHUB_USER="${{ github.actor }}" task-manager:latest
+
+      - name: Run Docker image and update index
+        run: |
+          docker run --rm \
+            -e GITHUB_USER="${{ github.actor }}" \
+            -v "${{ github.workspace }}:/app" \
+            task-manager:latest
