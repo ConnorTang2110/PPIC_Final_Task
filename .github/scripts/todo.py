@@ -22,7 +22,7 @@ class TaskPool:
         task1 = Task("Add Login UI", status="Done")
         task2 = Task("Fix UI Bug", status="Done")
         task3 = Task("Write Tests", status="Done")
-        task4 = Task("Update Login UI", status="ToDo")
+        task4 = Task("Update Login UI testgit", status="ToDo")
         task5 = Task("Update Documentation", status="ToDo")
         task6 = Task("Deploy to Production", status="ToDo")
 
