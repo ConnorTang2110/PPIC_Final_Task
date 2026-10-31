@@ -28,9 +28,10 @@ class TestTaskPool(unittest.TestCase):
 if __name__ == "__main__": 
     suite = unittest.TestLoader().loadTestsFromTestCase(TestTaskPool)
 
-    captured_output = StringIO()
+    captured_output = StringIO() 
 
-    result = unittest.TextTestResult(stream=captured_output, verbosity=2).run(suite)
+    runner = unittest.TextTestRunner(stream=captured_output, verbosity=2)
+    result = runner.run(suite)
 
     output_lines = captured_output.getvalue().splitlines()
 
