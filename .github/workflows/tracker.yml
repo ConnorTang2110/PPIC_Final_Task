@@ -1,3 +1,4 @@
+
 name: GitHub Projects Automation
 
 on:
@@ -7,19 +8,96 @@ on:
 jobs:
   move-issue-to-done:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Check if PR is merged
         if: github.event.pull_request.merged == true
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECT_ID: ${{ vars.PROJECT_ID }}
+          STATUS_FIELD_ID: ${{ vars.STATUS_FIELD_ID }}
+          DONE_OPTION_ID: ${{ vars.DONE_OPTION_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{
-              "column_id": "PROJECT_COLUMN_ID",
-              "content_type": "Issue",
-              "content_id": ${{ github.event.issue.id }}
-            }' \
-            https://api.github.com/projects/columns/PROJECT_COLUMN_ID/cards
+          set -e
+
+          echo "Finding issues linked to PR #$PR_NUMBER"
+
+          ISSUES=$(gh api graphql \
+            -f query='
+              query($owner: String!, $repo: String!, $pr: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pr) {
+                    closingIssuesReferences(first: 50) {
+                      nodes {
+                        id
+                        number
+                      }
+                    }
+                  }
+                }
+              }' \
+            -f owner="$GITHUB_REPOSITORY_OWNER" \
+            -f repo="${GITHUB_REPOSITORY#*/}" \
+            -F pr="$PR_NUMBER")
+
+          ISSUE_IDS=$(echo "$ISSUES" | jq -r \
+            '.data.repository.pullRequest.closingIssuesReferences.nodes[].id')
+
+          if [ -z "$ISSUE_IDS" ]; then
+            echo "No linked issues found."
+            exit 0
+          fi
+
+          for ISSUE_ID in $ISSUE_IDS; do
+
+            echo "Adding issue to GitHub Project..."
+
+            ITEM=$(gh api graphql \
+              -f query='
+                mutation($projectId: ID!, $contentId: ID!) {
+                  addProjectV2ItemById(input: {
+                    projectId: $projectId
+                    contentId: $contentId
+                  }) {
+                    item {
+                      id
+                    }
+                  }
+                }' \
+              -f projectId="$PROJECT_ID" \
+              -f contentId="$ISSUE_ID")
+
+            ITEM_ID=$(echo "$ITEM" | jq -r \
+              '.data.addProjectV2ItemById.item.id')
+
+            echo "Moving issue to Done..."
+
+            gh api graphql \
+              -f query='
+                mutation($projectId: ID!, $itemId: ID!,
+                         $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: {
+                      singleSelectOptionId: $optionId
+                    }
+                  }) {
+                    projectV2Item {
+                      id
+                    }
+                  }
+                }' \
+              -f projectId="$PROJECT_ID" \
+              -f itemId="$ITEM_ID" \
+              -f fieldId="$STATUS_FIELD_ID" \
+              -f optionId="$DONE_OPTION_ID"
+
+            echo "Issue successfully moved to Done!"
+
+          done
