@@ -40,11 +40,16 @@ if __name__ == "__main__":
             print(line.split(' ')[0] + ' ... ok')
 
     total_tests = result.testsRun
-    failed_tests = [t[0] for t in result.failures + result.errors]
-    passed_tests = [test for test in suite if test not in failed_tests]
+    total_tests = result.testsRun
+    failed_tests = len(result.failures) + len(result.errors)
+    passed_tests = total_tests - failed_tests
 
     print(f"Total Tests: {total_tests}")
-    print(f"Passed: {len(passed_tests)} ({(len(passed_tests) / total_tests) * 100:.2f}%)")
-    print(f"Passed: {len(failed_tests)} ({(len(passed_tests) / total_tests) * 100:.2f}%)")
+
+    if total_tests > 0:
+        print(f"Passed: {passed_tests} ({(passed_tests / total_tests) * 100:.2f}%)")
+        print(f"Failed: {failed_tests} ({(failed_tests / total_tests) * 100:.2f}%)")
+    else:
+        print("No tests were run.")
 
 

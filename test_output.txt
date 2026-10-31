@@ -1,0 +1,6 @@
+test_add_task ... ok
+test_get_done_tasks ... ok
+test_get_open_tasks ... ok
+Total Tests: 3
+Passed: 3 (100.00%)
+Failed: 0 (0.00%)
