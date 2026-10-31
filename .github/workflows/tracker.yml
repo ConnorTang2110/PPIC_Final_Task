@@ -1,1 +1,13 @@
-
+name: GitHub Projects Automation
+on:
+  pull_request:
+    types: [closed]
+jobs:
+  move-issue-to-done:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Move issue to Done
+        if: github.event.pull_request.merged == true
+        run: |
+          curl ...   # copy the exact command from the slide 15 screenshot
